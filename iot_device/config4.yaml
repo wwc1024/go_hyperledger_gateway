@@ -1,0 +1,263 @@
+# 客户端使用sdk与fabric网络交互，需要告诉sdk两类信息：
+
+# 我是谁：即当前客户端的信息，包含所属组织、密钥和证书文件的路径等， 这是每个客户端专用的信息。
+# 对方是谁：即fabric网络结构的信息，channel、org、orderer和peer等的怎么组合起当前fabric网络的，这些结构信息应当与configytx.yaml中是一致的。
+# 这是通用配置，每个客户端都可以拿来使用。另外，这部分信息并不需要是完整fabric网络信息，如果当前客户端只和部分节点交互，那配置文件中只需要包含所使用到的网络信息。
+
+name: "iot-fabric_network"
+version: 1.0.0 # 内容的模式版本。SDK用于应用相应的解析规则。
+# 1. 客户端部分
+client: # 用于GO SDK的客户端部分。
+  # 这个应用程序实例属于哪个组织?这个值必须是定义在"organizations"下的一个组织的名称。
+  organization: Org1
+  logging:
+    level: info
+
+  # 对等节点，事件服务和排序节点超时的全局配置。如果这个部分省略，将会使用默认值（默认值如下所示）。
+#  peer:
+#    timeout:
+#      connection: 10s
+#      response: 180s
+#      discovery:
+         # 发现服务灰名单过滤器的过期时间
+         # 通道客户端需要将掉线的对等节点列为灰名单以阻止重复选择并重试
+         # 这个间隔时间将定义多长时间将对等节点列为灰名单。
+#        greylistExpiry: 10s
+#  eventService:
+#    # Event service type (optional). If not specified then the type is automatically determined from channel capabilities.
+#    type: (deliver|eventhub)
+    # 下面的超时时间被注释掉以使用默认值，默认值可以在"pkg/fab/endpointconfig.go"中找到
+    # 客户端可以根据配置文件的需要取消注释并重新设置这些值，从而覆盖默认值
+#    timeout:
+#      connection: 15s
+#      registrationResponse: 15s
+#  orderer:
+#    timeout:
+#      connection: 15s
+#      response: 15s
+#  global:
+#    timeout:
+#      query: 180s
+#      execute: 180s
+#      resmgmt: 180s
+#    cache:
+#      connectionIdle: 30s
+#      eventServiceIdle: 2m
+#      channelConfig: 30m
+#      channelMembership: 30s
+#      discovery: 10s
+#      selection: 10m
+
+  # 带有密钥和证书的MSP的根目录。
+  cryptoconfig:
+    path: /home/json/fabric-samples/multiple-deployment/crypto-config
+
+  # 一些SDK支持可插拔的KV存储，"credentialStore"下的属性是具体实现
+  # credentialStore:
+  #   path: /tmp/example-store
+
+  # [可选的] 用于用户存储。如果所有凭证都嵌入到配置中，并且在其他地方执行登记，则不需要。
+  # cryptoStore:
+  #   path: /tmp/example-msp
+
+  # [可选的] 客户端的BCCSP配置。用于GO SDK。
+  BCCSP:
+    security:
+     enabled: true
+     default:
+      provider: "SW"
+     hashAlgorithm: "SHA2"
+     softVerify: true
+     level: 256
+
+  tlsCerts:
+    # [可选的] 当连接到对等节点、排序节点(用于协商TLS)时使用系统证书池。默认值：false
+    systemCertPool: false
+    # [可选的] 与对等节点和排序节点进行TLS握手的客户端密钥和证书
+    client:
+      key:
+        path:
+      cert:
+        path:
+
+# 2. 通道部分
+# [可选的] 但是大多数应用程序都会有此部分，以便可以根据以下内容构造通道对象。
+# 如果某个应用正在创建频道，则可能不需要此部分。
+channels:
+  # channel的名称
+  mychanneltwo:
+    # 必需的。应用程序指定用于该通道上的事务的订货人列表。
+    # 这个列表可以是访问控制(“org1”只能访问“ordererA”)的结果，也可以是在orderer之间共享应用程序负载的操作决策的结果。
+    # 该值必须是在“组织/Peer”下定义的组织的“名称”。已弃用:不推荐，为了覆盖任何orderer配置项，应该使用实体匹配器。
+    # orderers:
+    #  - orderer.example.com
+
+    # 必需的。来自参与组织的Peer列表
+    peers:
+      peer0.org1.example.com:
+        # [可选]。这个Peer会被发送交易建议以进行背书吗？这个Peer必须安装链码。
+        # 应用程序也可以使用这个属性来决定哪些Peer发送链码安装请求。默认值:true
+        endorsingPeer: true
+
+        # [可选]。这个peer会被发送查询建议吗？这个Peer必须安装链码。
+        # 应用程序也可以使用这个属性来决定哪些Peer发送链码安装请求。默认值:true
+        chaincodeQuery: true
+
+        # [可选]。这个peer会被发送不需要链码的查询提议，如queryBlock()、queryTransaction()等。默认值:true
+        ledgerQuery: true
+
+        # [可选]。这个peer会是SDK的监听器注册的目标吗？所有Peer都可以产生事件，但应用程序通常只需要连接到其中一个就可以监听事件。默认值:true
+        eventSource: true
+
+
+    # 应用程序可以使用这些选项来执行通道操作，如检索通道配置等。
+    policies:
+      # [可选]通道配置块检索选项
+      queryChannelConfig:
+        #[Optional] min number of success responses (from targets/peers)
+        minResponses: 1
+        #[Optional] channel config will be retrieved for these number of random targets
+        maxTargets: 1
+        retryOpts: # [可选]查询配置块的重试选项
+          attempts: 5 # [可选]重试次数
+          initialBackoff: 500ms # [可选]第一次重试尝试的回退间隔
+          #[Optional] the maximum back off interval for any retry attempt
+          maxBackoff: 5s
+          #[Optional] he factor by which the initial back off period is exponentially incremented
+          backoffFactor: 2.0
+      # 检索发现信息的选项
+      discovery:
+        #[Optional] discovery info will be retrieved for these number of random targets
+        maxTargets: 2
+        retryOpts: # [可选]检索发现信息的重试选项
+          attempts: 4 # [可选]重试次数
+          initialBackoff: 500ms # [可选]第一次重试尝试的后退间隔
+          maxBackoff: 5s # [可选]重试的最大回退时间间隔
+          backoffFactor: 2.0 # [Optional] he factor by which the initial back off period is exponentially incremented
+      # [可选]事件服务选项
+      eventService:
+        # [可选]resolverStrategy指定连接Peer时使用的Peer解析策略。取值范围:[PreferOrg (default)， MinBlockHeight, Balanced]
+        # PreferOrg:
+        #   Determines which peers are suitable based on block height lag threshold, although will prefer the peers in the
+        #   current org (as long as their block height is above a configured threshold). If none of the peers from the current org
+        #   are suitable then a peer from another org is chosen.
+        # MinBlockHeight:
+        #   Chooses the best peer according to a block height lag threshold. The maximum block height of all peers is
+        #   determined and the peers whose block heights are under the maximum height but above a provided "lag" threshold are load
+        #   balanced. The other peers are not considered.
+        # Balanced:
+        #   Chooses peers using the configured balancer.
+        resolverStrategy: PreferOrg
+        balancer: Random # [可选]均衡器是选择Peer连接时使用的均衡器。可能的值:[Random(默认值)，RoundRobin]
+        # [可选]blockHeightLagThreshold设置块高度延迟阈值。该值用于选择要连接的Peer。
+        # 如果一个Peer落后于最新的Peer超过给定的块数量，那么它将被排除在选择之外。
+        # 如果设置为0，则只考虑最新的Peer。如果设置为-1，则所有Peer(不管块高度如何)都被考虑进行选择。默认值:5
+        blockHeightLagThreshold: 5
+        # [可选]reconnectBlockHeightLagThreshold -如果>0则事件客户端将断开与对等体，如果对等体的块高度低于指定的块数量，并将重新连接到性能更好的对等体。
+        # 如果设置为0，则禁用此功能。默认值:10
+        reconnectBlockHeightLagThreshold: 10 # 设置这个值过低可能会导致事件客户端频繁断开/重新连接，从而影响性能。
+        # [可选]peerMonitorPeriod是一段时间，在这段时间内，连接的对等体被监控，以查看事件客户端是否应该断开连接，并重新连接到另一个对等体。默认值:0(禁用)
+        peerMonitorPeriod: 5s # 该值必须大于0
+
+# 3. 组织部分
+# 参与本网络的组织名单
+organizations:
+  Org1:
+    mspid: Org1MSP
+    # 这个组织的MSP存储(绝对路径或相对于client.cryptoconfig)
+    cryptoPath:  peerOrganizations/org1.example.com/users/{username}@org1.example.com/msp
+    # users:
+    #   Admin:
+    #     cert:
+    #       path: /home/json/fabric-samples/multiple-deployment/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem
+    #   User1:
+    #     cert:
+    #       path: /home/json/fabric-samples/multiple-deployment/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp/signcerts/User1@org1.example.com-cert.pem
+    peers:
+      - peer0.org1.example.com
+      # - peer1.org1.example.com
+
+    # 在基于Fabric的网络中，证书颁发机构为识别目的颁发证书。通常，证书提供是在运行时网络之外的单独进程中完成的。
+    # Fabric-CA是一个特殊的证书颁发机构，它为动态证书管理(注册、撤销、重新注册)提供了一个REST api。以下内容仅适用于Fabric-CA服务器。
+    certificateAuthorities:
+      - ca.org1.example.com
+      - tlsca.org1.example.com
+
+
+
+# 4. 排序节点部分
+# 要发送事务和通道创建/更新请求的订购者列表。目前只需要一份订单。如果定义了多个，那么SDK将使用哪个是特定于实现的。
+# 请查阅每个SDK的文档，了解它对排序的处理。
+orderers:
+  orderer0.example.com:
+    url: localhost:7050
+    # 这些是gRPC库定义的标准属性，它们将被原样传递给gRPC客户端构造器
+    grpcOptions:
+      ssl-target-name-override: orderer0.example.com
+      # 这些参数的设置应该与服务器上的keepalive策略相协调，因为不兼容的设置可能导致连接关闭。
+      # 当“keep-alive-time”的持续时间设置为0或更小时，保持活跃的客户端参数将被禁用
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      # 如果address没有定义协议，Allow-insecure将被考虑，如果address为true则GRPC或GRPCS
+      allow-insecure: false
+    tlsCACerts:
+      # 证书位置绝对路径
+      path: /home/json/fabric-samples/multiple-deployment/crypto-config/ordererOrganizations/example.com/msp/tlscacerts/tlsca.example.com-cert.pem
+
+# 5. Peer节点部分
+# 发送各种请求的对等点节点列表，包括背书、查询和事件侦听器注册。
+peers:
+  peer0.org1.example.com:
+    url: grpcs://localhost:7051 # 此URL用于发送背书和查询请求 
+    eventUrl: grpcs://localhost:7053 # eventUrl仅在使用eventub时需要(默认为交付服务)
+    grpcOptions:  # 所有Peer的通用GRPC选项
+      ssl-target-name-override: peer0.org1.example.com
+      # 这些参数的设置应该与服务器上的keepalive策略相协调，因为不兼容的设置可能导致连接关闭。
+      # 当“keep-alive-time”的持续时间设置为0或更小时，保持活跃的客户端参数将被禁用
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      # 如果address没有定义协议，Allow-insecure将被考虑，如果address为true则GRPC或GRPCS
+      allow-insecure: false
+    tlsCACerts:
+      # 证书本地绝对路径
+      path: /home/json/fabric-samples/multiple-deployment/crypto-config/peerOrganizations/org1.example.com/msp/tlscacerts/tlsca.org1.example.com-cert.pem
+
+
+# 6. CA部分
+# Fabric-ca是Hyperledger Fabric提供的一种特殊的证书颁发机构，它允许通过REST api进行证书管理。
+# 应用程序可以选择使用标准的证书颁发机构而不是Fabric-CA，在这种情况下，将不指定此部分。
+certificateAuthorities:
+  ca.org1.example.com:
+    url: https://localhost:7054
+    tlsCACerts:
+      # 证书位置的绝对路径
+      path: /home/json/fabric-samples/multiple-deployment/crypto-config/peerOrganizations/org1.example.com/ca/ca.org1.example.com-cert.pem
+    # Fabric-CA支持通过REST api动态注册用户。注册和调用新用户需要一个“根”用户，即注册商
+    registrar:
+      enrollId: admin
+      enrollSecret: adminpw
+    # [可选]CA的可选名称。
+    caName: ca.org1.example.com
+
+entityMatchers:
+  peer:
+    - pattern: (\w*)peer0.org1.example.com(\w*)
+      urlSubstitutionExp: grpcs://localhost:7051
+      eventUrlSubstitutionExp: grpcs://localhost:7053
+      sslTargetOverrideUrlSubstitutionExp: peer0.org1.example.com
+      mappedHost: peer0.org1.example.com
+
+  orderer:
+    - pattern: (\w*)orderer0.example.com(\w*)
+      urlSubstitutionExp: grpcs://localhost:7050
+      sslTargetOverrideUrlSubstitutionExp: orderer0.example.com
+      mappedHost: orderer0.example.com
+
+  certificateAuthorities:
+    - pattern: (\w*)ca.org1.example.com(\w*)
+      urlSubstitutionExp: http://localhost:7054
+      mappedHost: ca.org1.example.com

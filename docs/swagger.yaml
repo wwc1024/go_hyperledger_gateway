@@ -1,0 +1,807 @@
+definitions:
+  dto.AdminInfoOutput:
+    properties:
+      avatar:
+        type: string
+      id:
+        type: integer
+      introduction:
+        type: string
+      login_time:
+        type: string
+      name:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.AdminLoginInput:
+    properties:
+      password:
+        description: 密码
+        example: "123456"
+        type: string
+      username:
+        description: 管理员用户名
+        example: admin
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  dto.AdminLoginOutput:
+    properties:
+      token:
+        description: token
+        example: token
+        type: string
+    type: object
+  dto.ChangePwdInput:
+    properties:
+      password:
+        description: 密码
+        example: "123456"
+        type: string
+    required:
+    - password
+    type: object
+  dto.ChannelListItemOutput:
+    properties:
+      channel_id:
+        description: 通道ID
+        type: string
+      create_at:
+        description: 创建时间
+        type: string
+      detail:
+        description: 通道描述
+        type: string
+      id:
+        description: id
+        type: integer
+      state:
+        description: 状态
+        type: string
+      total_node:
+        description: 节点数
+        type: integer
+    type: object
+  dto.ChannelListOutput:
+    properties:
+      list:
+        description: 列表
+        items:
+          $ref: '#/definitions/dto.ChannelListItemOutput'
+        type: array
+      total:
+        description: 总数
+        type: integer
+    type: object
+  dto.ContentListItemOutput:
+    properties:
+      content_name:
+        description: 合约名称
+        type: string
+      detail:
+        description: detail
+        type: string
+      id:
+        description: id
+        type: integer
+      service_name:
+        description: ServiceName
+        type: string
+      service_type:
+        description: ServiceType
+        type: string
+      tap:
+        description: tap
+        type: string
+    type: object
+  dto.ContentListOutput:
+    properties:
+      list:
+        description: 列表
+        items:
+          $ref: '#/definitions/dto.ContentListItemOutput'
+        type: array
+      total:
+        description: 总数
+        type: integer
+    type: object
+  dto.DashServiceStatItemOutput:
+    properties:
+      name:
+        type: string
+      service_type:
+        type: string
+      value:
+        type: integer
+    type: object
+  dto.DashServiceStatOutput:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.DashServiceStatItemOutput'
+        type: array
+      legend:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.DhtOutput:
+    properties:
+      dhtId:
+        type: string
+      humitidy:
+        type: integer
+      id:
+        type: integer
+      temperature:
+        type: integer
+      time:
+        type: string
+    type: object
+  dto.DhtSetting:
+    properties:
+      dhtId:
+        type: string
+      nowSample:
+        type: integer
+    type: object
+  dto.PanelGroupDataOutput:
+    properties:
+      channelNum:
+        type: integer
+      joinService:
+        type: integer
+      joinedChannel:
+        type: integer
+      peerNum:
+        type: integer
+    type: object
+  dto.PanelGroupDataOutput2:
+    properties:
+      dhtNum:
+        type: integer
+      nowSample:
+        type: integer
+      nowdhtId:
+        type: integer
+    type: object
+  dto.PeerListItemOutput:
+    properties:
+      create_at:
+        type: string
+      id:
+        type: integer
+      ip:
+        type: string
+      is_delete:
+        type: integer
+      name:
+        type: string
+      org:
+        type: string
+      port:
+        type: integer
+      state:
+        type: string
+      update_at:
+        type: string
+    type: object
+  dto.PeerListOutput:
+    properties:
+      list:
+        items:
+          $ref: '#/definitions/dto.PeerListItemOutput'
+        type: array
+      total:
+        type: integer
+    type: object
+  dto.ServiceStatOutput:
+    properties:
+      allService:
+        description: 列表
+        items:
+          type: integer
+        type: array
+      joinService:
+        description: 列表
+        items:
+          type: integer
+        type: array
+    type: object
+  dto.TemperatureLineData:
+    properties:
+      dhtId:
+        type: string
+      nowTempList:
+        description: 列表
+        items:
+          type: string
+        type: array
+      time:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.TokensInput:
+    properties:
+      grant_type:
+        description: 授权类型
+        example: client_credentials
+        type: string
+      scope:
+        description: 权限范围
+        example: read_write
+        type: string
+    required:
+    - grant_type
+    - scope
+    type: object
+  dto.TokensOutput:
+    properties:
+      access_token:
+        description: access_token
+        type: string
+      expires_in:
+        description: expires_in
+        type: integer
+      scope:
+        description: scope
+        type: string
+      token_type:
+        description: token_type
+        type: string
+    type: object
+  middleware.Response:
+    properties:
+      data: {}
+      errmsg:
+        type: string
+      errno:
+        type: integer
+      stack: {}
+      trace_id: {}
+    type: object
+info:
+  contact: {}
+paths:
+  /admin/admin_info:
+    get:
+      consumes:
+      - application/json
+      description: 管理员信息
+      operationId: /admin/admin_info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AdminInfoOutput'
+              type: object
+      summary: 管理员信息
+      tags:
+      - 管理员接口
+  /admin/change_pwd:
+    post:
+      consumes:
+      - application/json
+      description: 修改密码
+      operationId: /admin/change_pwd
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ChangePwdInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: 修改密码
+      tags:
+      - 管理员接口
+  /admin_login/login:
+    post:
+      consumes:
+      - application/json
+      description: 管理员登陆
+      operationId: /admin_login/login
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AdminLoginInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AdminLoginOutput'
+              type: object
+      summary: 管理员登陆
+      tags:
+      - 管理员接口
+  /admin_login/logout:
+    get:
+      consumes:
+      - application/json
+      description: 管理员退出
+      operationId: /admin_login/logout
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: 管理员退出
+      tags:
+      - 管理员接口
+  /app/app_list:
+    get:
+      consumes:
+      - application/json
+      description: 节点列表
+      operationId: /app/app_list
+      parameters:
+      - description: 关键词
+        in: query
+        name: info
+        type: string
+      - description: 每页多少条
+        in: query
+        name: page_size
+        required: true
+        type: string
+      - description: 页码
+        in: query
+        name: page_no
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PeerListOutput'
+              type: object
+      summary: 节点列表
+      tags:
+      - 节点管理
+  /channel/channel_count:
+    get:
+      consumes:
+      - application/json
+      description: 通道数
+      operationId: /channel/channel_count
+      parameters:
+      - description: 通道ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: 通道数
+      tags:
+      - 通道管理
+  /channel/channel_create:
+    post:
+      consumes:
+      - application/json
+      description: 通道创建
+      operationId: /channel/channel_create
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            $ref: '#/definitions/middleware.Response'
+      summary: 通道创建
+      tags:
+      - 通道管理
+  /channel/channel_delete:
+    get:
+      consumes:
+      - application/json
+      description: 通道删除
+      operationId: /channel/channel_delete
+      parameters:
+      - description: 服务ID
+        in: query
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: 通道删除
+      tags:
+      - 通道管理
+  /channel/channel_list:
+    get:
+      consumes:
+      - application/json
+      description: 通道列表
+      operationId: /channel/channel_list
+      parameters:
+      - description: 关键词
+        in: query
+        name: info
+        type: string
+      - description: 每页个数
+        in: query
+        name: page_size
+        required: true
+        type: integer
+      - description: 当前页数
+        in: query
+        name: page_no
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ChannelListOutput'
+              type: object
+      summary: 通道列表
+      tags:
+      - 通道管理
+  /channel/channel_my:
+    post:
+      consumes:
+      - application/json
+      description: 我的通道
+      operationId: /channel/channel_my
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            $ref: '#/definitions/middleware.Response'
+      summary: 我的通道
+      tags:
+      - 通道管理
+  /channel/content/dhtdashboard/dht_get:
+    get:
+      consumes:
+      - application/json
+      description: 取得所有dhtid输出温度图片形式
+      operationId: /channel/content/dhtdashboard/dht_get
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TemperatureLineData'
+              type: object
+      summary: 取得所有dhtid输出温度图片形式
+      tags:
+      - dht接口
+  /channel/content/dhtdashboard/dhtdata_get:
+    get:
+      consumes:
+      - application/json
+      description: 取得所有dhtid输出温度数据形式
+      operationId: /channel/content/dhtdashboard/dhtdata_get
+      parameters:
+      - description: 关键词
+        in: query
+        name: info
+        type: string
+      - description: 每页个数
+        in: query
+        name: page_size
+        type: integer
+      - description: 当前页数
+        in: query
+        name: page_no
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.DhtOutput'
+              type: object
+      summary: 取得所有dhtid输出温度数据形式
+      tags:
+      - dht接口
+  /channel/content/dhtdashboard/dhtsetting:
+    post:
+      consumes:
+      - application/json
+      description: Dhtsetting
+      operationId: /channel/content/dhtdashboard/dhtsetting
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DhtSetting'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  type: string
+              type: object
+      summary: Dhtsetting
+      tags:
+      - dht接口
+  /channel/content/dhtdashboard/panel_group_data2:
+    get:
+      consumes:
+      - application/json
+      description: 指标统计
+      operationId: /channel/content/dhtdashboard/panel_group_data2
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PanelGroupDataOutput2'
+              type: object
+      summary: dht传感器统计
+      tags:
+      - 图表管理
+  /channel/content_list:
+    get:
+      consumes:
+      - application/json
+      description: 合约列表
+      operationId: /channel/content_list
+      parameters:
+      - description: 关键词
+        in: query
+        name: info
+        type: string
+      - description: 每页个数
+        in: query
+        name: page_size
+        required: true
+        type: integer
+      - description: 当前页数
+        in: query
+        name: page_no
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ContentListOutput'
+              type: object
+      summary: 合约列表
+      tags:
+      - 通道管理
+  /content/dhtdashboard/baidu_map:
+    get:
+      consumes:
+      - application/json
+      description: 地图
+      operationId: /content/dhtdashboard/baidu_map
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            $ref: '#/definitions/middleware.Response'
+      summary: 地图
+      tags:
+      - 图表管理
+  /content/dhtdashboard/content_num:
+    get:
+      consumes:
+      - application/json
+      description: 合约数
+      operationId: /content/dhtdashboard/content_num
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            $ref: '#/definitions/middleware.Response'
+      summary: 合约数
+      tags:
+      - 图表管理
+  /content/dhtdashboard/service_num:
+    get:
+      consumes:
+      - application/json
+      description: 服务数
+      operationId: /content/dhtdashboard/service_num
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            $ref: '#/definitions/middleware.Response'
+      summary: 服务数
+      tags:
+      - 图表管理
+  /dashboard/panel_group_data:
+    get:
+      consumes:
+      - application/json
+      description: 指标统计
+      operationId: /dashboard/panel_group_data
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.PanelGroupDataOutput'
+              type: object
+      summary: 指标统计
+      tags:
+      - 首页大盘
+  /dashboard/service_stat:
+    get:
+      consumes:
+      - application/json
+      description: 扇形图
+      operationId: /dashboard/service_stat
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.DashServiceStatOutput'
+              type: object
+      summary: 扇形图
+      tags:
+      - 首页大盘
+  /dashboard/serviceNum_stat:
+    get:
+      consumes:
+      - application/json
+      description: 服务统计
+      operationId: /dashboard/serviceNum_stat
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.ServiceStatOutput'
+              type: object
+      summary: 服务统计
+      tags:
+      - 首页大盘
+  /oauth/tokens:
+    post:
+      consumes:
+      - application/json
+      description: 获取TOKEN
+      operationId: /oauth/tokens
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.TokensInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.TokensOutput'
+              type: object
+      summary: 获取TOKEN
+      tags:
+      - OAUTH
+swagger: "2.0"
